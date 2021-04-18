@@ -1,0 +1,23 @@
+menu "SSD 1306 LCD Screen"
+    config SSD_1306_I2C_PORT
+        int "I2C Port Number"
+        range 0 1
+        default 0
+    
+    config SSD_1306_I2C_FREQ
+        int "I2C Frequency"
+        default 100000
+
+    config SSD_1306_I2C_ADDR
+        hex "Default I2C Address"
+        range 0x0 0xFF
+        default 0x3C
+
+    config SSD_1306_SCREEN_WIDTH
+        int "LCD Screen Width"
+        default 128
+
+    config SSD_1306_SCREEN_HEIGHT
+        int "LCD Screen Height"
+        default 64
+endmenu
