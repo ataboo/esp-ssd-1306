@@ -126,7 +126,7 @@ static esp_err_t canvas_to_oled_buffer(canvas_grid_handle grid_handle, oled_buff
         for(int by=0; by<CANVAS_HEIGHT / 8; by++) {
             byte_val = 0;
             for(int y=0; y<8; y++) {
-                if (canvas_data[x * CANVAS_WIDTH + by*8 + y]) {
+                if (canvas_data[x * CANVAS_HEIGHT + by*8 + y]) {
                     byte_val |= 1<<y;
                 }
             }
@@ -187,6 +187,37 @@ esp_err_t draw_canvas_grid(canvas_grid_handle canvas) {
     return ESP_OK;
 }
 
+esp_err_t dump_canvas_buffer(canvas_grid_handle canvas) {
+    if (oled_buffer == NULL) {
+        oled_buffer = init_oled_buffer();
+    }
+
+    uint8_t* data = oled_buffer_get_data(oled_buffer);
+
+    RETURN_IF_NOT_OK(canvas_to_oled_buffer(canvas, oled_buffer), "canvas to oled bytes");
+
+    printf("Dumping canvas buffer:\n");
+
+    for(int y=0; y<CANVAS_HEIGHT; y++) {
+        printf("%d: ", y);
+        for(int x=0; x<CANVAS_WIDTH; x++) {
+            int yByte = y/8;
+            int yBit = y%8;
+            uint8_t intVal = data[yByte * CANVAS_WIDTH + x];
+            
+            if (intVal & 1<<yBit) {
+                printf("X");
+            } else {
+                printf("_");
+            }
+        }
+        printf("\n");
+    }
+
+
+    return ESP_OK;
+}
+
 void set_lcd_i2c_addr(uint8_t addr) {
     i2c_addr = addr;
 }
@@ -202,7 +233,6 @@ esp_err_t init_lcd_i2c() {
 
     return ESP_OK;
 }
-
 
 esp_err_t deinit_lcd_i2s() {
     deinit_oled_buffer(oled_buffer);

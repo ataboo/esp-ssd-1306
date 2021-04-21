@@ -21,8 +21,8 @@ import binascii
 import os
 import math
 
-font_name = "Ubuntu Mono, Bold"
-font_size = 16
+font_name = "Ubuntu Mono"
+font_size = 12
 char_start = ' '
 char_end = '~'
 
@@ -36,7 +36,7 @@ row_height = font_size
 # Write to header with 0b integer rather than hex.
 write_binary_ints = True
 
-base_file_name = "ata_monobold{0}".format(row_height)
+base_file_name = "ata_mono{0}".format(row_height)
 
 img_out_path = os.path.abspath("{0}.png".format(base_file_name))
 header_out_path = os.path.abspath("{0}.h".format(base_file_name))
@@ -59,7 +59,7 @@ def layer_to_introws(layer):
             pixel = bytearray(rgn[x, y])
             if pixel[0] > 0:
                 row_val |= 1<<x
-            
+
         rows.append(row_val)
 
     return rows
@@ -80,16 +80,16 @@ def write_ints_to_c_header(int_rows):
     f.write("// Each character is represented by {0} rows of integers representing the bit mask for each rows.\n".format(row_height))
     f.write(("uint32_t {0}[ ][{1}] = {{\n").format(base_file_name, row_height))
 
-    for row_name in int_rows:
+    for row_name, vals in sorted(int_rows.items()):
         f.write("    //char '{0}'\n".format(row_name))
         
         if write_binary_ints:
             f.write("    {\n")
-            f.write(",\n".join(map(lambda int_val: "        0b{0:0{1}b}".format(int_val, col_width), int_rows[row_name])))
+            f.write(",\n".join(map(lambda int_val: "        0b{0:0{1}b}".format(int_val, col_width), vals)))
             f.write("\n    },\n")
         else:
             f.write("    {")
-            f.write(", ".join(map(lambda int_val: hex(int_val), int_rows[row_name])))
+            f.write(", ".join(map(lambda int_val: hex(int_val), vals)))
             f.write("}\n")
 
     f.write("};")
@@ -98,7 +98,7 @@ def write_ints_to_c_header(int_rows):
     print("Saved to {0}".format(header_out_path))
 
 def render_char(char, img):
-    text_layer = pdb.gimp_text_fontname(img, None, 0, 0, "\xC2\xb0", 0, False, font_size, PIXELS, font_name)
+    text_layer = pdb.gimp_text_fontname(img, None, 0, 0, char, 0, False, font_size, PIXELS, font_name)
 
     dx = col_width - text_layer.width
     dy = row_height - text_layer.height
@@ -131,9 +131,8 @@ def run_export():
 
     for c in char_range(char_start, char_end):
         text_layer = render_char(c, img)
-        
         int_rows[c] = layer_to_introws(text_layer)
-        
+
         col_idx = char_idx % col_count
         row_idx = char_idx / col_count
 

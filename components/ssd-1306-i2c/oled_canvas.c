@@ -3,16 +3,25 @@
 #include <string.h>
 #include <math.h>
 #include "oled_buffer.h"
-#include "ssd-1306-i2c.h"
-// #define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
-#include "ata_monospace16.h"
+#include "ssd-1306-i2c.h"
 
-// static const char* TAG = "OLED_CANVAS";
+static const char* TAG = "OLED_CANVAS";
 
 typedef struct {
     bool values[SCREEN_WIDTH][SCREEN_HEIGHT];
 } canvas_grid_impl;
+
+
+typedef struct {
+    const char* name;
+    int width;
+    int height;
+    uint8_t start_char;
+    uint8_t end_char;
+    uint32_t* data;
+} canvas_font_impl;
 
 static void plot_line_dx(canvas_grid_impl* canvas, canvas_point_t p1, canvas_point_t p2) {
     int dx = p2.x - p1.x;
@@ -66,7 +75,7 @@ esp_err_t canvas_draw_line(canvas_grid_handle canvas, canvas_point_t p1, canvas_
     if (!canvas) {
         return ESP_FAIL;
     }
-    
+
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
 
     if(abs(p2.y - p1.y) < abs(p2.x - p1.x)) {
@@ -90,10 +99,11 @@ esp_err_t dump_canvas(canvas_grid_handle canvas) {
     if (!canvas) {
         return ESP_FAIL;
     }
-    
+
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
     char log_buffer[CANVAS_WIDTH+2];
 
+    printf("Dumping Canvas Grid:\n");
     for(canvas_int_t y=0; y<CANVAS_HEIGHT; y++) {
         for(canvas_int_t x=0; x<CANVAS_WIDTH; x++) {
             log_buffer[x] = canvas_impl->values[x][y] ? 'x' : '_';
@@ -123,7 +133,7 @@ esp_err_t clear_canvas_grid(canvas_grid_handle canvas) {
 canvas_grid_handle init_canvas_grid() {
     canvas_grid_impl* canvas = (canvas_grid_impl*)malloc(sizeof(canvas_grid_impl));
     clear_canvas_grid((canvas_grid_handle)canvas);
-    
+
     return (canvas_grid_handle)canvas;
 }
 
@@ -131,7 +141,7 @@ esp_err_t canvas_draw_circle(canvas_grid_handle canvas, canvas_point_t point, fl
     if (!canvas) {
         return ESP_FAIL;
     }
-    
+
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
     double minAngle = acos(1 - 1/radius);
 
@@ -176,6 +186,46 @@ esp_err_t canvas_draw_rect(canvas_grid_handle canvas, canvas_point_t point1, can
         canvas_draw_line(canvas, point1, (canvas_point_t){point1.x, point2.y});
         canvas_draw_line(canvas, point2, (canvas_point_t){point2.x, point1.y});
         canvas_draw_line(canvas, point2, (canvas_point_t){point1.x, point2.y});
+    }
+
+    return ESP_OK;
+}
+
+canvas_font_handle init_canvas_font(const char* name, int width, int height, uint8_t start_char, uint8_t end_char, uint32_t* data) {
+    canvas_font_impl* font = malloc(sizeof(canvas_font_impl));
+
+    font->name = name;
+    font->width = width;
+    font->height = height;
+    font->start_char = start_char;
+    font->end_char = end_char;
+    font->data = data;
+
+    return (canvas_font_handle)font;
+}
+
+esp_err_t canvas_draw_text(canvas_grid_handle canvas, const char* text, canvas_point_t point, canvas_font_handle font) {
+    if(!canvas || !font) {
+        return ESP_FAIL;
+    }
+
+    canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
+    canvas_font_impl* font_impl = (canvas_font_impl*)font;
+    int text_len = strlen(text);
+
+    //todo validate sizes.
+
+    for(int i=0; i<text_len; i++) {
+        int char_idx = text[i] - font_impl->start_char;
+        uint32_t* pattern = font_impl->data + char_idx * font_impl->height;
+
+        for(int y=0; y<font_impl->height; y++) {
+            for(int x=0; x<font_impl->width; x++) {
+                if(pattern[y] & 1<<x) {
+                    canvas_impl->values[x + point.x + i*font_impl->width][y + point.y] = true;
+                }
+            }
+        }
     }
 
     return ESP_OK;
