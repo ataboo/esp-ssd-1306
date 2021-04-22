@@ -48,7 +48,7 @@ static esp_err_t send_i2c_cmd(i2c_cmd_handle_t cmd) {
     i2c_cmd_link_delete(cmd);
 
     if(ret == ESP_OK) {
-        ESP_LOGI(TAG, "Success!");
+        ESP_LOGD(TAG, "Success!");
     } else if (ret == ESP_ERR_TIMEOUT) {
         ESP_LOGW(TAG, "i2c timed out");
     } else {
@@ -199,7 +199,7 @@ esp_err_t dump_canvas_buffer(canvas_grid_handle canvas) {
     printf("Dumping canvas buffer:\n");
 
     for(int y=0; y<CANVAS_HEIGHT; y++) {
-        printf("%d: ", y);
+        printf("%2d:", y);
         for(int x=0; x<CANVAS_WIDTH; x++) {
             int yByte = y/8;
             int yBit = y%8;

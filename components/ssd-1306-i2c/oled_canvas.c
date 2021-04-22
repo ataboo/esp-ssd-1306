@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include "oled_buffer.h"
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+// #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
 #include "ssd-1306-i2c.h"
 

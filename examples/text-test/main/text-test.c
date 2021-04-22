@@ -7,8 +7,8 @@ void app_main(void) {
     esp_log_level_set("*", ESP_LOG_DEBUG);
 
     canvas_grid_handle canvas_grid = init_canvas_grid();
-    canvas_font_handle mono_16 = init_canvas_font("mono16", ATA_MONO16_WIDTH, ATA_MONO16_HEIGHT, ATA_MONO16_STARTCHAR, ATA_MONO16_ENDCHAR, (uint32_t*)ata_mono16);
-    canvas_font_handle mono_12 = init_canvas_font("mono12", ATA_MONO12_WIDTH, ATA_MONO12_HEIGHT, ATA_MONO12_STARTCHAR, ATA_MONO12_ENDCHAR, (uint32_t*)ata_mono12);
+    canvas_font_handle mono_16 = CREATE_ATA_MONO16();
+    canvas_font_handle mono_12 = CREATE_ATA_MONO12();
 
     canvas_draw_line(canvas_grid, (canvas_point_t){6, 60}, (canvas_point_t){24, 32});
     canvas_draw_line(canvas_grid, (canvas_point_t){24, 32}, (canvas_point_t){42, 60});
