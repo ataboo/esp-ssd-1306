@@ -2,7 +2,7 @@
 # in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-list(APPEND EXTRA_COMPONENT_DIRS ../../components)
+list(APPEND EXTRA_COMPONENT_DIRS ../../)
 list(APPEND REQUIRES ssd-1306-i2c)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
