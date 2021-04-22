@@ -7,6 +7,9 @@
 #include "esp_log.h"
 #include "ssd-1306-i2c.h"
 
+#define MIN(a, b) ((a)<(b) ? (a):(b))
+#define MAX(a, b) ((a)>(b) ? (a):(b))
+
 static const char* TAG = "OLED_CANVAS";
 
 typedef struct {
@@ -22,6 +25,12 @@ typedef struct {
     uint8_t end_char;
     uint32_t* data;
 } canvas_font_impl;
+
+
+static void cage_point_in_range(canvas_point_t* point, int minX, int maxX, int minY, int maxY) {
+    point->x = MIN(MAX(point->x, minX), maxX);
+    point->y = MIN(MAX(point->y, minY), maxY);
+}
 
 static void plot_line_dx(canvas_grid_impl* canvas, canvas_point_t p1, canvas_point_t p2) {
     int dx = p2.x - p1.x;
@@ -75,6 +84,9 @@ esp_err_t canvas_draw_line(canvas_grid_handle canvas, canvas_point_t p1, canvas_
     if (!canvas) {
         return ESP_FAIL;
     }
+
+    cage_point_in_range(&p1, 0, CANVAS_WIDTH-1, 0, CANVAS_HEIGHT-1);
+    cage_point_in_range(&p2, 0, CANVAS_WIDTH-1, 0, CANVAS_HEIGHT-1);
 
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
 
@@ -142,6 +154,8 @@ esp_err_t canvas_draw_circle(canvas_grid_handle canvas, canvas_point_t point, fl
         return ESP_FAIL;
     }
 
+    cage_point_in_range(&point, 0, SCREEN_WIDTH-1, 0, SCREEN_HEIGHT-1);
+
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
     double minAngle = acos(1 - 1/radius);
 
@@ -168,6 +182,9 @@ esp_err_t canvas_draw_rect(canvas_grid_handle canvas, canvas_point_t point1, can
     if (!canvas) {
         return ESP_FAIL;
     }
+
+    cage_point_in_range(&point1, 0, SCREEN_WIDTH-1, 0, SCREEN_HEIGHT-1);
+    cage_point_in_range(&point2, 0, SCREEN_WIDTH-1, 0, SCREEN_HEIGHT-1);
 
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
 
@@ -213,16 +230,29 @@ esp_err_t canvas_draw_text(canvas_grid_handle canvas, const char* text, canvas_p
     canvas_font_impl* font_impl = (canvas_font_impl*)font;
     int text_len = strlen(text);
 
-    //todo validate sizes.
+    cage_point_in_range(&point, 0, SCREEN_WIDTH-1, 0, SCREEN_HEIGHT-1);
 
     for(int i=0; i<text_len; i++) {
         int char_idx = text[i] - font_impl->start_char;
+        if(char_idx < font_impl->start_char || char_idx >= font_impl->end_char) {
+            ESP_LOGW(TAG, "Character out of range of font: %d", text[i]);
+            continue;
+        }
+
         uint32_t* pattern = font_impl->data + char_idx * font_impl->height;
+        int screen_x;
+        int screen_y;
 
         for(int y=0; y<font_impl->height; y++) {
             for(int x=0; x<font_impl->width; x++) {
                 if(pattern[y] & 1<<x) {
-                    canvas_impl->values[x + point.x + i*font_impl->width][y + point.y] = true;
+                    screen_x = x + point.x + i*font_impl->width;
+                    screen_y = y + point.y;
+
+                    if (screen_x < 0 || screen_x >= SCREEN_WIDTH || screen_y < 0 || screen_y >= SCREEN_HEIGHT) {
+                        continue;
+                    }
+                    canvas_impl->values[screen_x][screen_y] = true;
                 }
             }
         }

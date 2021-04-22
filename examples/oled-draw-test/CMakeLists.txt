@@ -6,4 +6,4 @@ list(APPEND EXTRA_COMPONENT_DIRS ../../components)
 list(APPEND REQUIRES ssd-1306-i2c)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(text-test)
+project(oled-draw-test)
