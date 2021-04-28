@@ -173,11 +173,11 @@ esp_err_t draw_canvas_grid(canvas_grid_handle canvas) {
         0x07
     };
 
-    ESP_LOGI(TAG, "[2.1] set position");
+    ESP_LOGD(TAG, "[2.1] set position");
     int cmds_len = 7;
     RETURN_IF_NOT_OK(write_bytes(cmds, cmds_len), "write command stream");
 
-    ESP_LOGI(TAG, "[2.2] write data");
+    ESP_LOGD(TAG, "[2.2] write data");
     i2c_cmd_handle_t cmd = init_i2c_cmd();
     i2c_master_write_byte(cmd, CTRL_BYTE_STREAM_DATA, 1);
     uint8_t* data = (uint8_t*)oled_buffer_get_data(oled_buffer);
@@ -225,10 +225,10 @@ void set_lcd_i2c_addr(uint8_t addr) {
 esp_err_t init_lcd_i2c() {
     i2c_addr = CONFIG_SSD_1306_I2C_ADDR;
 
-    ESP_LOGI(TAG, "[1.1] init i2s");
+    ESP_LOGD(TAG, "[1.1] init i2s");
     RETURN_IF_NOT_OK(init_i2c(), "init i2c");
 
-    ESP_LOGI(TAG, "[1.2] initialize lcd settings");
+    ESP_LOGD(TAG, "[1.2] initialize lcd settings");
     RETURN_IF_NOT_OK(initialize_lcd_settings(), "init lcd settings");
 
     return ESP_OK;

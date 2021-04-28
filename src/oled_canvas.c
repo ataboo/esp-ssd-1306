@@ -134,8 +134,6 @@ esp_err_t clear_canvas_grid(canvas_grid_handle canvas) {
         return ESP_FAIL;
     }
 
-    printf("bool is this big: %d\n", sizeof(bool));
-
     canvas_grid_impl* canvas_impl = (canvas_grid_impl*)canvas;
     memset(canvas_impl->values, 0, sizeof(bool) * CANVAS_WIDTH * CANVAS_HEIGHT);
 
@@ -193,8 +191,8 @@ esp_err_t canvas_draw_rect(canvas_grid_handle canvas, canvas_point_t point1, can
         int maxX = point1.x < point2.x ? point2.x : point1.x;
         int minY = point1.y < point2.y ? point1.y : point2.y;
         int maxY = point1.y < point2.y ? point2.y : point1.y;
-        for(int x=minX; x<maxX; x++) {
-            for(int y=minY; y<maxY; y++) {
+        for(int x=minX; x<=maxX; x++) {
+            for(int y=minY; y<=maxY; y++) {
                 canvas_impl->values[x][y] = 1;
             }
         }
@@ -234,7 +232,7 @@ esp_err_t canvas_draw_text(canvas_grid_handle canvas, const char* text, canvas_p
 
     for(int i=0; i<text_len; i++) {
         int char_idx = text[i] - font_impl->start_char;
-        if(char_idx < font_impl->start_char || char_idx >= font_impl->end_char) {
+        if(text[i] < font_impl->start_char || text[i] >= font_impl->end_char) {
             ESP_LOGW(TAG, "Character out of range of font: %d", text[i]);
             continue;
         }
