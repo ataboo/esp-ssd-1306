@@ -80,6 +80,19 @@ static void plot_line_dy(canvas_grid_impl* canvas, canvas_point_t p1, canvas_poi
     }
 }
 
+esp_err_t canvas_draw_eq_tri(canvas_grid_handle canvas, canvas_point_t p1, int width, int height, bool inverted) {
+    int x, y;
+    
+    for(int row=0; row<height; row++) {
+        y = inverted ? p1.y + row : p1.y + height - row;
+        x = p1.x + (row/2);
+
+        canvas_draw_line(canvas, (canvas_point_t){x, y}, (canvas_point_t){x+width-row, y});
+    }
+
+    return ESP_OK;
+}
+
 esp_err_t canvas_draw_line(canvas_grid_handle canvas, canvas_point_t p1, canvas_point_t p2) {
     if (!canvas) {
         return ESP_FAIL;

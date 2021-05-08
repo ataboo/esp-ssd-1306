@@ -44,6 +44,8 @@ esp_err_t canvas_draw_rect(canvas_grid_handle canvas, canvas_point_t point1, can
 
 esp_err_t canvas_draw_text(canvas_grid_handle canvas, const char* text, canvas_point_t position, canvas_font_handle font);
 
+esp_err_t canvas_draw_eq_tri(canvas_grid_handle canvas, canvas_point_t p1, int width, int height, bool inverted);
+
 esp_err_t deinit_canvas(canvas_grid_handle canvas);
 
 bool* canvas_get_data(canvas_grid_handle canvas);
